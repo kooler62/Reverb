@@ -79,4 +79,13 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script type="module">
+            window.Echo.private(`messages.{{ auth()->id() }}`)
+                .listen('MessageSent', (e) => {
+                    console.log('New message received:', e);
+                });
+        </script>
+    @endpush
 </x-app-layout>
