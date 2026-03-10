@@ -61,14 +61,28 @@
                                     <td class="py-3 px-4">{{ $message->sender?->name ?? '—' }}</td>
                                     <td class="py-3 px-4">{{ $message->receiver?->name ?? '—' }}</td>
                                     <td class="py-3 px-4">
-                                        @if($message->is_read)
-                                            <svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" />
-                                            </svg>
+                                        @if($message->receiver_id === auth()->id())
+                                            <button class="read-toggle cursor-pointer" data-id="{{ $message->id }}" data-read="{{ $message->is_read ? '1' : '0' }}">
+                                                @if($message->is_read)
+                                                    <svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" />
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-5 h-5 text-gray-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M5 12l5 5L20 6" />
+                                                    </svg>
+                                                @endif
+                                            </button>
                                         @else
-                                            <svg class="w-5 h-5 text-gray-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M5 12l5 5L20 6" />
-                                            </svg>
+                                            @if($message->is_read)
+                                                <svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" />
+                                                </svg>
+                                            @else
+                                                <svg class="w-5 h-5 text-gray-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M5 12l5 5L20 6" />
+                                                </svg>
+                                            @endif
                                         @endif
                                     </td>
                                     <td class="py-3 px-4 max-w-xs truncate">{{ $message->text }}</td>
@@ -98,6 +112,23 @@
                 return `${y}-${m}-${d} ${h}:${min}`;
             }
 
+            const readSvg = `<svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" /></svg>`;
+            const unreadSvg = `<svg class="w-5 h-5 text-gray-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" /></svg>`;
+
+            document.getElementById('messages-tbody').addEventListener('click', (e) => {
+                const btn = e.target.closest('.read-toggle');
+                if (!btn) return;
+
+                const id = btn.dataset.id;
+                const isRead = btn.dataset.read === '1';
+                const url = isRead ? `/messages/${id}/unread` : `/messages/${id}/read`;
+
+                axios.patch(url).then(() => {
+                    btn.dataset.read = isRead ? '0' : '1';
+                    btn.innerHTML = isRead ? unreadSvg : readSvg;
+                });
+            });
+
             window.Echo.private(`messages.{{ auth()->id() }}`)
                 .listen('MessageSent', (e) => {
                     const tbody = document.getElementById('messages-tbody');
@@ -108,9 +139,9 @@
                         <td class="py-3 px-4">${e.sender_name ?? '—'}</td>
                         <td class="py-3 px-4">${e.receiver_name ?? '—'}</td>
                         <td class="py-3 px-4">
-                            <svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" />
-                            </svg>
+                            <button class="read-toggle cursor-pointer" data-id="${e.id}" data-read="1">
+                                ${readSvg}
+                            </button>
                         </td>
                         <td class="py-3 px-4 max-w-xs truncate">${e.text}</td>
                         <td class="py-3 px-4">${formatDate(e.created_at)}</td>

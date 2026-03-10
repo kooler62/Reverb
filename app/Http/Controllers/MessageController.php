@@ -43,4 +43,11 @@ class MessageController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function unread(Message $message): JsonResponse
+    {
+        $this->messageService->markAsUnread($message, auth()->user());
+
+        return response()->json(['success' => true]);
+    }
 }
