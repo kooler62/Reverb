@@ -36,7 +36,7 @@ class MessageService
             'text' => $text,
         ]);
 
-        $message->load('sender');
+        $message->load(['sender', 'receiver']);
         MessageSent::dispatch($message);
 
         return $message;

@@ -54,7 +54,7 @@
                                 <th class="py-3 px-4">Created</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="messages-tbody">
                             @foreach ($messages as $message)
                                 <tr class="border-b hover:bg-gray-50">
                                     <td class="py-3 px-4">{{ $message->id }}</td>
@@ -82,9 +82,32 @@
 
     @push('scripts')
         <script type="module">
+            function formatDate(isoString) {
+                const date = new Date(isoString);
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                const h = String(date.getHours()).padStart(2, '0');
+                const min = String(date.getMinutes()).padStart(2, '0');
+                return `${y}-${m}-${d} ${h}:${min}`;
+            }
+
             window.Echo.private(`messages.{{ auth()->id() }}`)
                 .listen('MessageSent', (e) => {
-                    console.log('New message received:', e);
+                    const tbody = document.getElementById('messages-tbody');
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-50 bg-yellow-50';
+                    tr.innerHTML = `
+                        <td class="py-3 px-4">${e.id}</td>
+                        <td class="py-3 px-4">${e.sender_name ?? '—'}</td>
+                        <td class="py-3 px-4">${e.receiver_name ?? '—'}</td>
+                        <td class="py-3 px-4 max-w-xs truncate">${e.text}</td>
+                        <td class="py-3 px-4">
+                            <span class="text-gray-400">No</span>
+                        </td>
+                        <td class="py-3 px-4">${formatDate(e.created_at)}</td>
+                    `;
+                    tbody.prepend(tr);
                 });
         </script>
     @endpush
