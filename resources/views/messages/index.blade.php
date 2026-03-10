@@ -43,6 +43,16 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
+                    <div class="flex justify-between items-center mb-4">
+                        <span>
+                            Unread: <span id="unread-count" class="font-semibold">{{ $unreadCount }}</span>
+                        </span>
+                        <button id="read-all-btn"
+                            class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 {{ $unreadCount === 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                            {{ $unreadCount === 0 ? 'disabled' : '' }}>
+                            Read all
+                        </button>
+                    </div>
                     <table class="w-full text-left">
                         <thead class="border-b">
                             <tr>
@@ -115,6 +125,17 @@
             const readSvg = `<svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" /></svg>`;
             const unreadSvg = `<svg class="w-5 h-5 text-gray-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" /></svg>`;
 
+            const unreadCountEl = document.getElementById('unread-count');
+            const readAllBtn = document.getElementById('read-all-btn');
+            let unreadCount = {{ $unreadCount }};
+
+            function updateUnreadUI() {
+                unreadCountEl.textContent = unreadCount;
+                readAllBtn.disabled = unreadCount === 0;
+                readAllBtn.classList.toggle('opacity-50', unreadCount === 0);
+                readAllBtn.classList.toggle('cursor-not-allowed', unreadCount === 0);
+            }
+
             document.getElementById('messages-tbody').addEventListener('click', (e) => {
                 const btn = e.target.closest('.read-toggle');
                 if (!btn) return;
@@ -126,6 +147,19 @@
                 axios.patch(url).then(() => {
                     btn.dataset.read = isRead ? '0' : '1';
                     btn.innerHTML = isRead ? unreadSvg : readSvg;
+                    unreadCount += isRead ? 1 : -1;
+                    updateUnreadUI();
+                });
+            });
+
+            readAllBtn.addEventListener('click', () => {
+                axios.patch('/messages/read-all').then(() => {
+                    document.querySelectorAll('.read-toggle[data-read="0"]').forEach(btn => {
+                        btn.dataset.read = '1';
+                        btn.innerHTML = readSvg;
+                    });
+                    unreadCount = 0;
+                    updateUnreadUI();
                 });
             });
 
@@ -149,6 +183,7 @@
                     tbody.prepend(tr);
 
                     axios.patch(`/messages/${e.id}/read`);
+                    // already read via axios, count stays the same
                 });
         </script>
     @endpush

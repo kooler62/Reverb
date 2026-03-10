@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
     Route::patch('/messages/{message}/read', [MessageController::class, 'read'])->name('messages.read');
     Route::patch('/messages/{message}/unread', [MessageController::class, 'unread'])->name('messages.unread');
+    Route::patch('/messages/read-all', [MessageController::class, 'readAll'])->name('messages.readAll');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

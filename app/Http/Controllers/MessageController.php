@@ -20,8 +20,9 @@ class MessageController extends Controller
         $authUser = auth()->user();
         $messages = $this->messageService->getMessagesForUser($authUser);
         $users = $this->messageService->getAvailableReceivers($authUser);
+        $unreadCount = $this->messageService->unreadCount($authUser);
 
-        return view('messages.index', compact('messages', 'users'));
+        return view('messages.index', compact('messages', 'users', 'unreadCount'));
     }
 
     public function store(StoreMessageRequest $request): RedirectResponse
@@ -45,6 +46,13 @@ class MessageController extends Controller
     public function unread(Message $message): JsonResponse
     {
         $this->messageService->markAsUnread($message);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function readAll(): JsonResponse
+    {
+        $this->messageService->markAllAsRead(auth()->user());
 
         return response()->json(['success' => true]);
     }

@@ -42,6 +42,22 @@ class MessageService
         }
     }
 
+    public function markAllAsRead(User $user): int
+    {
+        return Message::query()
+            ->where('receiver_id', $user->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+    }
+
+    public function unreadCount(User $user): int
+    {
+        return Message::query()
+            ->where('receiver_id', $user->id)
+            ->where('is_read', false)
+            ->count();
+    }
+
     public function sendMessage(User $sender, int $receiverId, string $text): Message
     {
         $message = Message::query()->create([
