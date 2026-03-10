@@ -39,14 +39,14 @@ class MessageController extends Controller
 
     public function read(Message $message): JsonResponse
     {
-        $this->messageService->markAsRead($message, auth()->user());
+        $this->messageService->markAsRead($message);
 
         return response()->json(['success' => true]);
     }
 
     public function unread(Message $message): JsonResponse
     {
-        $this->messageService->markAsUnread($message, auth()->user());
+        $this->messageService->markAsUnread($message);
 
         return response()->json(['success' => true]);
     }
