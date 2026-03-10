@@ -65,11 +65,11 @@
                         </thead>
                         <tbody id="messages-tbody">
                             @foreach ($messages as $message)
-                                <tr class="border-b hover:bg-gray-50">
+                                <tr class="border-b hover:bg-gray-50" data-message-id="{{ $message->id }}">
                                     <td class="py-3 px-4">{{ $message->id }}</td>
                                     <td class="py-3 px-4">{{ $message->sender?->name ?? '—' }}</td>
                                     <td class="py-3 px-4">{{ $message->receiver?->name ?? '—' }}</td>
-                                    <td class="py-3 px-4">
+                                    <td class="py-3 px-4 status-cell">
                                         @if($message->receiver_id === auth()->id())
                                             <button class="read-toggle cursor-pointer" data-id="{{ $message->id }}" data-read="{{ $message->is_read ? '1' : '0' }}">
                                                 @if($message->is_read)
@@ -181,11 +181,12 @@
                     const tbody = document.getElementById('messages-tbody');
                     const tr = document.createElement('tr');
                     tr.className = 'border-b hover:bg-gray-50';
+                    tr.dataset.messageId = msg.id;
                     tr.innerHTML = `
                         <td class="py-3 px-4">${msg.id}</td>
                         <td class="py-3 px-4">${authName}</td>
                         <td class="py-3 px-4">${msg.receiver_name ?? '—'}</td>
-                        <td class="py-3 px-4">
+                        <td class="py-3 px-4 status-cell">
                             ${unreadSvg}
                         </td>
                         <td class="py-3 px-4 max-w-xs truncate">${msg.text}</td>
@@ -215,6 +216,7 @@
                     const tbody = document.getElementById('messages-tbody');
                     const tr = document.createElement('tr');
                     tr.className = 'border-b hover:bg-gray-50 bg-yellow-50';
+                    tr.dataset.messageId = e.id;
                     tr.innerHTML = `
                         <td class="py-3 px-4">${e.id}</td>
                         <td class="py-3 px-4">${e.sender_name ?? '—'}</td>
@@ -230,7 +232,21 @@
                     tbody.prepend(tr);
 
                     axios.patch(`/messages/${e.id}/read`);
-                    // already read via axios, count stays the same
+                })
+                .listen('MessageStatusChanged', (e) => {
+                    const row = document.querySelector(`tr[data-message-id="${e.id}"]`);
+                    if (!row) return;
+
+                    const statusCell = row.querySelector('.status-cell');
+                    if (statusCell) {
+                        statusCell.innerHTML = e.is_read ? readSvg : unreadSvg;
+                    }
+
+                    const btn = row.querySelector('.read-toggle');
+                    if (btn) {
+                        btn.dataset.read = e.is_read ? '1' : '0';
+                        btn.innerHTML = e.is_read ? readSvg : unreadSvg;
+                    }
                 });
         </script>
     @endpush

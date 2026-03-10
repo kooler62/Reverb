@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\MessageSent;
+use App\Events\MessageStatusChanged;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -32,6 +33,7 @@ class MessageService
     {
         if ($message->receiver_id === auth()->user()->id && ! $message->is_read) {
             $message->update(['is_read' => true]);
+            MessageStatusChanged::dispatch($message->id, $message->sender_id, true);
         }
     }
 
@@ -39,15 +41,27 @@ class MessageService
     {
         if ($message->receiver_id === auth()->user()->id && $message->is_read) {
             $message->update(['is_read' => false]);
+            MessageStatusChanged::dispatch($message->id, $message->sender_id, false);
         }
     }
 
     public function markAllAsRead(User $user): int
     {
-        return Message::query()
+        $unreadMessages = Message::query()
+            ->where('receiver_id', $user->id)
+            ->where('is_read', false)
+            ->get(['id', 'sender_id']);
+
+        $count = Message::query()
             ->where('receiver_id', $user->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
+
+        foreach ($unreadMessages as $msg) {
+            MessageStatusChanged::dispatch($msg->id, $msg->sender_id, true);
+        }
+
+        return $count;
     }
 
     public function unreadCount(User $user): int
