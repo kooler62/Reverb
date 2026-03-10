@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMessageRequest;
+use App\Models\Message;
 use App\Services\MessageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -33,5 +35,12 @@ class MessageController extends Controller
         );
 
         return redirect()->route('messages.index');
+    }
+
+    public function read(Message $message): JsonResponse
+    {
+        $this->messageService->markAsRead($message, auth()->user());
+
+        return response()->json(['success' => true]);
     }
 }

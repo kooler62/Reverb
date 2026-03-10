@@ -28,6 +28,13 @@ class MessageService
             ->get();
     }
 
+    public function markAsRead(Message $message, User $user): void
+    {
+        if ($message->receiver_id === $user->id && !$message->is_read) {
+            $message->update(['is_read' => true]);
+        }
+    }
+
     public function sendMessage(User $sender, int $receiverId, string $text): Message
     {
         $message = Message::query()->create([

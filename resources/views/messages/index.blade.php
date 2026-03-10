@@ -49,8 +49,8 @@
                                 <th class="py-3 px-4">ID</th>
                                 <th class="py-3 px-4">Sender</th>
                                 <th class="py-3 px-4">Receiver</th>
-                                <th class="py-3 px-4">Text</th>
                                 <th class="py-3 px-4">Read</th>
+                                <th class="py-3 px-4">Text</th>
                                 <th class="py-3 px-4">Created</th>
                             </tr>
                         </thead>
@@ -60,12 +60,18 @@
                                     <td class="py-3 px-4">{{ $message->id }}</td>
                                     <td class="py-3 px-4">{{ $message->sender?->name ?? '—' }}</td>
                                     <td class="py-3 px-4">{{ $message->receiver?->name ?? '—' }}</td>
-                                    <td class="py-3 px-4 max-w-xs truncate">{{ $message->text }}</td>
                                     <td class="py-3 px-4">
-                                        <span class="{{ $message->is_read ? 'text-green-600' : 'text-gray-400' }}">
-                                            {{ $message->is_read ? 'Yes' : 'No' }}
-                                        </span>
+                                        @if($message->is_read)
+                                            <svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" />
+                                            </svg>
+                                        @else
+                                            <svg class="w-5 h-5 text-gray-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M5 12l5 5L20 6" />
+                                            </svg>
+                                        @endif
                                     </td>
+                                    <td class="py-3 px-4 max-w-xs truncate">{{ $message->text }}</td>
                                     <td class="py-3 px-4">{{ $message->created_at->format('Y-m-d H:i') }}</td>
                                 </tr>
                             @endforeach
@@ -101,13 +107,17 @@
                         <td class="py-3 px-4">${e.id}</td>
                         <td class="py-3 px-4">${e.sender_name ?? '—'}</td>
                         <td class="py-3 px-4">${e.receiver_name ?? '—'}</td>
-                        <td class="py-3 px-4 max-w-xs truncate">${e.text}</td>
                         <td class="py-3 px-4">
-                            <span class="text-gray-400">No</span>
+                            <svg class="w-5 h-5 text-green-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12l5 5L17 6" /><path d="M7 12l5 5L23 6" />
+                            </svg>
                         </td>
+                        <td class="py-3 px-4 max-w-xs truncate">${e.text}</td>
                         <td class="py-3 px-4">${formatDate(e.created_at)}</td>
                     `;
                     tbody.prepend(tr);
+
+                    axios.patch(`/messages/${e.id}/read`);
                 });
         </script>
     @endpush
