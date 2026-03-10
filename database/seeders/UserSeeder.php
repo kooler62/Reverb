@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         $demoUserExists = User::query()->where('email', self::DEMO_USER_EMAIL)->exists();
         $demoUser1Exists = User::query()->where('email', self::DEMO_USER_1_EMAIL)->exists();
 
-        if (! $demoUser1Exists) {
+        if (! $demoUserExists) {
             User::factory()->create([
                 'name' => 'Test User',
                 'email' => self::DEMO_USER_EMAIL,
