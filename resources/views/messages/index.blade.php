@@ -12,29 +12,28 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 text-gray-900">
-                    <form method="POST" action="{{ route('messages.store') }}">
-                        @csrf
+                    <form id="message-form">
                         <div class="flex gap-4 items-end">
                             <div class="w-1/4">
                                 <x-input-label for="receiver_id" value="Receiver" />
                                 <select id="receiver_id" name="receiver_id"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                     @foreach ($users as $user)
-                                        <option value="{{ $user->id }}" @selected(old('receiver_id') == $user->id)>
+                                        <option value="{{ $user->id }}">
                                             {{ $user->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <x-input-error :messages="$errors->get('receiver_id')" class="mt-1" />
+                                <p id="error-receiver_id" class="text-sm text-red-600 mt-1 hidden"></p>
                             </div>
                             <div class="flex-1">
                                 <x-input-label for="text" value="Message" />
                                 <x-text-input id="text" name="text" class="mt-1 block w-full"
-                                    :value="old('text')" placeholder="Type your message..." />
-                                <x-input-error :messages="$errors->get('text')" class="mt-1" />
+                                    placeholder="Type your message..." />
+                                <p id="error-text" class="text-sm text-red-600 mt-1 hidden"></p>
                             </div>
                             <div>
-                                <x-primary-button>Send</x-primary-button>
+                                <x-primary-button type="submit">Send</x-primary-button>
                             </div>
                         </div>
                     </form>
@@ -160,6 +159,54 @@
                     });
                     unreadCount = 0;
                     updateUnreadUI();
+                });
+            });
+
+            const authName = '{{ auth()->user()->name }}';
+
+            document.getElementById('message-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const receiverSelect = form.querySelector('#receiver_id');
+                const textInput = form.querySelector('#text');
+
+                document.getElementById('error-receiver_id').classList.add('hidden');
+                document.getElementById('error-text').classList.add('hidden');
+
+                axios.post('/messages', {
+                    receiver_id: receiverSelect.value,
+                    text: textInput.value,
+                }).then((response) => {
+                    const msg = response.data;
+                    const tbody = document.getElementById('messages-tbody');
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-50';
+                    tr.innerHTML = `
+                        <td class="py-3 px-4">${msg.id}</td>
+                        <td class="py-3 px-4">${authName}</td>
+                        <td class="py-3 px-4">${msg.receiver_name ?? '—'}</td>
+                        <td class="py-3 px-4">
+                            ${unreadSvg}
+                        </td>
+                        <td class="py-3 px-4 max-w-xs truncate">${msg.text}</td>
+                        <td class="py-3 px-4">${formatDate(msg.created_at)}</td>
+                    `;
+                    tbody.prepend(tr);
+                    textInput.value = '';
+                }).catch((error) => {
+                    if (error.response?.status === 422) {
+                        const errors = error.response.data.errors;
+                        if (errors.receiver_id) {
+                            const el = document.getElementById('error-receiver_id');
+                            el.textContent = errors.receiver_id[0];
+                            el.classList.remove('hidden');
+                        }
+                        if (errors.text) {
+                            const el = document.getElementById('error-text');
+                            el.textContent = errors.text[0];
+                            el.classList.remove('hidden');
+                        }
+                    }
                 });
             });
 

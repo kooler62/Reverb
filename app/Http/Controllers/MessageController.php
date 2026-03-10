@@ -6,7 +6,6 @@ use App\Http\Requests\StoreMessageRequest;
 use App\Models\Message;
 use App\Services\MessageService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class MessageController extends Controller
@@ -25,15 +24,21 @@ class MessageController extends Controller
         return view('messages.index', compact('messages', 'users', 'unreadCount'));
     }
 
-    public function store(StoreMessageRequest $request): RedirectResponse
+    public function store(StoreMessageRequest $request): JsonResponse
     {
-        $this->messageService->sendMessage(
+        $message = $this->messageService->sendMessage(
             auth()->user(),
             $request->validated('receiver_id'),
             $request->validated('text'),
         );
 
-        return redirect()->route('messages.index');
+        return response()->json([
+            'id' => $message->id,
+            'sender_name' => $message->sender?->name,
+            'receiver_name' => $message->receiver?->name,
+            'text' => $message->text,
+            'created_at' => $message->created_at->toISOString(),
+        ]);
     }
 
     public function read(Message $message): JsonResponse
