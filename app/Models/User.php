@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property ?Carbon $email_verified_at
  * @property string $password
- * @property string|null $remember_token
+ * @property ?string $remember_token
  * @property ?Carbon $created_at
  * @property ?Carbon $updated_at
  */
