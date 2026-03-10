@@ -30,14 +30,13 @@ class MessageService
 
     public function markAsRead(Message $message): void
     {
-        if ($message->receiver_id === auth()->user()->id && !$message->is_read) {
+        if ($message->receiver_id === auth()->user()->id && ! $message->is_read) {
             $message->update(['is_read' => true]);
         }
     }
 
     public function markAsUnread(Message $message): void
     {
-
         if ($message->receiver_id === auth()->user()->id && $message->is_read) {
             $message->update(['is_read' => false]);
         }
