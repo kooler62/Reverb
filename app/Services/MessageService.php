@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -29,10 +30,15 @@ class MessageService
 
     public function sendMessage(User $sender, int $receiverId, string $text): Message
     {
-        return Message::query()->create([
+        $message = Message::query()->create([
             'sender_id' => $sender->id,
             'receiver_id' => $receiverId,
             'text' => $text,
         ]);
+
+        $message->load(['sender', 'receiver']);
+        MessageSent::dispatch($message);
+
+        return $message;
     }
 }
