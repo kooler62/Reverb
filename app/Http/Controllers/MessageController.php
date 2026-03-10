@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Message;
+use App\Models\User;
+use App\Http\Requests\StoreMessageRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class MessageController extends Controller
@@ -17,6 +20,22 @@ class MessageController extends Controller
             ->latest()
             ->paginate();
 
-        return view('messages.index', compact('messages'));
+        $users = User::query()
+            ->where('id', '!=', $authUser->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('messages.index', compact('messages', 'users'));
+    }
+
+    public function store(StoreMessageRequest $request): RedirectResponse
+    {
+        Message::query()->create([
+            'sender_id' => auth()->id(),
+            'receiver_id' => $request->validated('receiver_id'),
+            'text' => $request->validated('text'),
+        ]);
+
+        return redirect()->route('messages.index');
     }
 }

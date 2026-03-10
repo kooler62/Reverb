@@ -10,6 +10,37 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6 text-gray-900">
+                    <form method="POST" action="{{ route('messages.store') }}">
+                        @csrf
+                        <div class="flex gap-4 items-end">
+                            <div class="w-1/4">
+                                <x-input-label for="receiver_id" value="Receiver" />
+                                <select id="receiver_id" name="receiver_id"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @foreach ($users as $user)
+                                        <option value="{{ $user->id }}" @selected(old('receiver_id') == $user->id)>
+                                            {{ $user->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('receiver_id')" class="mt-1" />
+                            </div>
+                            <div class="flex-1">
+                                <x-input-label for="text" value="Message" />
+                                <x-text-input id="text" name="text" class="mt-1 block w-full"
+                                    :value="old('text')" placeholder="Type your message..." />
+                                <x-input-error :messages="$errors->get('text')" class="mt-1" />
+                            </div>
+                            <div>
+                                <x-primary-button>Send</x-primary-button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <table class="w-full text-left">
